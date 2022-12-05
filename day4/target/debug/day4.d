@@ -1,0 +1,1 @@
+C:\Users\tyler\Documents\code\Rust\ Projects\adventofcode\2022\day4\target\debug\day4.exe: C:\Users\tyler\Documents\code\Rust\ Projects\adventofcode\2022\day4\src\main.rs C:\Users\tyler\Documents\code\Rust\ Projects\adventofcode\2022\day4\src\star1.rs C:\Users\tyler\Documents\code\Rust\ Projects\adventofcode\2022\day4\src\star2.rs
