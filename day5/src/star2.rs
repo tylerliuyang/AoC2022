@@ -42,6 +42,7 @@ pub fn main() {
                 for _ in 0.. amount {
                     crates.get(destination).unwrap().lock().unwrap().insert(0, temp.remove(0));
                 }
+                
             }
             Err(error) => {println!("error: {error}"); break;},
         } 
