@@ -1,3 +1,6 @@
+mod star1;
+// mod star2;
+mod stdinpushback;
 fn main() {
-    println!("Hello, world!");
+    star1::main();
 }
