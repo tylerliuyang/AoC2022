@@ -2,22 +2,36 @@ use std::{io::{stdin, Read}, collections::{HashSet, LinkedList, HashMap}, proces
 
 use crate::stdinpushback::Pushback;
 
+fn get_curr_directory(list: &LinkedList<String>) -> String {
+    let mut fold_buf = String::new();
 
-fn add_subdirectories(sizes: &mut HashMap<String, i32>, links: &mut HashMap<String, Mutex<Vec<String>>>, curr: &mut String) -> i32 {
+    list.iter().map(|s: &String| {
+        fold_buf.push_str(&s.to_string());
+        fold_buf.push('/');
+    }).for_each(drop);
+
+    return fold_buf;
+}
+
+fn add_subdirectories(sizes: &HashMap<String, Mutex<i32>>, links: &mut HashMap<String, Mutex<Vec<String>>>, curr: &mut String) -> i32 {
     // println!("{:?} {} {}", links.get(curr), curr, sizes.get(curr).unwrap());
     if let Some(next) = links.remove(curr) {
         let values = next.lock().unwrap();
         if values.len() == 0 {
-            return *sizes.get(curr).unwrap();
+            return *sizes.get(curr).unwrap().lock().unwrap();
         }
-        print!("{:?} {}", values.iter(), curr);
+        print!("{:?} {} ", values.iter(), curr);
         for subdir in values.iter() {
             let output = add_subdirectories(sizes, links, &mut subdir.to_string());
             println!("{} {}", subdir, output);
-            sizes.insert(curr.to_string(), sizes.get(curr).unwrap() + output);
+            let value = *sizes.get(curr).unwrap().lock().unwrap();
+            *sizes.get(curr)
+                .unwrap()
+                .lock()
+                .unwrap() = value.add(output);
         };
     }
-    *sizes.get(curr).unwrap()
+    *sizes.get(curr).unwrap().lock().unwrap()
 }
 
 pub fn main() {
@@ -38,9 +52,10 @@ pub fn main() {
                     list.pop_back();
                 } else if input.starts_with("$ cd") {
                     let output: Vec<&str> = input.split(" ").collect();  
+
                     list.push_back(output.get(2).unwrap().to_string());
-                    sizes.insert(output.get(2).unwrap().to_string(), Mutex::new(0));
-                    links.insert(output.get(2).unwrap().to_string(), Mutex::new(Vec::new()));
+                    sizes.insert(get_curr_directory(&list), Mutex::new(0));
+                    links.insert(get_curr_directory(&list), Mutex::new(Vec::new()));
                 } else if input.starts_with("$ ls"){
                     loop {
                         let mut buf = String::new();
@@ -50,21 +65,31 @@ pub fn main() {
                             helper.set(buf);
                             break;
                         } else if buf.starts_with("dir") { 
+
                             buf = buf.strip_suffix("\r\n").unwrap().to_string();
-                            links.get(list.back().unwrap()) // gets vec 
+                            let mut folder_name = buf.split(" ") // gets the dir
+                                .collect::<Vec<&str>>()
+                                .get(1).unwrap()
+                                .to_string();
+                            list.push_back(folder_name);
+                            folder_name = get_curr_directory(&list);
+                            list.pop_back();
+
+                            links.get(&get_curr_directory(&list)) // gets vec 
                                 .unwrap()
                                 .lock() // gets lock for mutex
                                 .unwrap()
-                                .push(buf.split(" ") // gets the dir
-                                    .collect::<Vec<&str>>()
-                                    .get(1).unwrap()
-                                    .to_string());
+                                .push(folder_name);
+
                             continue;
+
                         } else {
                             let output: Vec<&str> = buf.split(" ").collect();
-                            let old_size = sizes.get(list.back().unwrap()).unwrap();
-                            sizes.get(&list.back().unwrap().to_string()).replace(&Some(sizes.get(&list.back().unwrap().to_string()).unwrap().unwrap() + (output.get(0).unwrap().parse::<i32>().unwrap())));
-                            // sizes.insert(list.back().unwrap().to_string(), old_size + output.get(0).unwrap().parse::<i32>().unwrap());
+                            let old_size = *sizes.get(&get_curr_directory(&list)).unwrap().lock().unwrap();
+                            *sizes.get(&get_curr_directory(&list))
+                                .unwrap()
+                                .lock()
+                                .unwrap() = old_size + output.get(0).unwrap().parse::<i32>().unwrap();
                         }
                     }
 
@@ -76,17 +101,19 @@ pub fn main() {
     }
     println!("{:?}", sizes);
     println!("{:?}", links);
-    // add_subdirectories(&mut sizes, &mut links, &mut "/".to_string());
-    // let mut sizes_under = 0;
+    let mut sizes_under = 0;
+    add_subdirectories(&sizes, &mut links, &mut "//".to_string());
+
     // sizes.iter().map(|c| {
-    //     add_subdirectories(&mut sizes.clone(), &mut links, &mut c.0.to_string());
-    // });
-    // for elt in sizes.iter() {
-    //     println!("{:?}", elt);
-    //     if *elt.1 <= 100000 {
-    //         sizes_under += elt.1;
-    //     }
-    // }
-    // println!("the total size under 100000 is: {}", sizes_under);
+    //     add_subdirectories(&sizes, &mut links, &mut c.0.to_string());
+    // }).for_each(drop);
+
+    for elt in sizes.iter() {
+        println!("{:?}", elt);
+        if *elt.1.lock().unwrap() <= 100000 {
+            sizes_under = *elt.1.lock().unwrap() + sizes_under;
+        }
+    }
+    println!("the total size under 100000 is: {}", sizes_under);
 }
 
