@@ -1,12 +1,12 @@
 use std::{io::{stdin}, sync::Mutex};
 
-
 enum Direction { 
     LEFT,
     RIGHT,
     UP,
     DOWN
 }
+
 fn look(forest: &Mutex<Vec<Mutex<Vec<usize>>>>, i: usize, j: usize, direction: Direction) -> usize{
     let height = forest.lock().unwrap().get(i).unwrap().lock().unwrap().get(j).unwrap().clone();
     let mut trees_seen = 1;
