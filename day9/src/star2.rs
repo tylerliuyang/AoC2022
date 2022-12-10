@@ -7,22 +7,16 @@ enum Direction {
     DOWN
 }
 type Location = (i32, i32);
-fn new_loc(head: Location, tail: Location, old_head: Location) -> Location {
+fn new_loc(head: Location, tail: Location) -> Location {
 
-    if (head.0 - tail.0).abs() > 1 && head.1 - tail.1 == 0 {
-        return old_head;
+    if (head.0 - tail.0).abs() > 1 && (head.1 - tail.1).abs() > 1 {
+        return (tail.0 + (head.0 - tail.0)/2, tail.1 + (head.1 - tail.1)/2);
     }
-    else if (head.1 - tail.1).abs() > 1 && head.0 - tail.0 == 0 {
-        return old_head;
+    else if (head.1 - tail.1).abs() > 1 {
+        return (tail.0 + (head.0 - tail.0), tail.1 + (head.1 - tail.1)/2);
     }
-    else if (head.0 - tail.0).abs() > 1 && (head.1 - tail.1).abs() == 1 {
-        return (head.0 - (head.0 - tail.0)/2, head.1 - (head.1 - tail.1));
-    }
-    else if (head.0 - tail.0).abs() == 1 && (head.1 - tail.1).abs() > 1 {
-        return (head.0 - (head.0 - tail.0), head.1 - (head.1 - tail.1)/2);
-    } 
-    else if (head.0 - tail.0).abs() > 1 && (head.1 - tail.1).abs() > 1 {
-        return (head.0 - (head.0 - tail.0)/2, head.1 - (head.1 - tail.1)/2);
+    else if (head.0 - tail.0).abs() > 1 {
+        return (tail.0 + (head.0 - tail.0)/2, tail.1 + (head.1 - tail.1));
     }
     tail
 }
@@ -36,7 +30,6 @@ pub fn main() {
         match stdin().read_line(&mut input) {
             Ok(0) => {break;}
             Ok(_) => {
-                println!("------------");
                 input = input.strip_suffix("\r\n").unwrap().to_string();
                 let values = input.split(" ").collect::<Vec<&str>>();
                 let direction = match values.get(0).unwrap().chars().nth(0) {
@@ -50,7 +43,6 @@ pub fn main() {
 
 
                 for _ in 0..amount {
-                    let old_locations = locations.clone();
                     match direction {
                         Direction::LEFT => {locations[0] = (locations[0].0-1, locations[0].1)}
                         Direction::RIGHT => {locations[0] = (locations[0].0+1, locations[0].1)}
@@ -59,9 +51,8 @@ pub fn main() {
                     }
 
                     for i in 1..10 {
-                        locations[i] = new_loc(locations[i-1], locations[i],old_locations[i-1]);
+                        locations[i] = new_loc(locations[i-1], locations[i]);
                     } 
-                    println!("{:?} \n{:?} \n", old_locations, locations);
                     visited.insert(locations[9]);
 
                 }
