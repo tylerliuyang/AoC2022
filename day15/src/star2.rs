@@ -54,7 +54,7 @@ pub fn main() {
         input.clear();
         stdin().read_line(&mut input).unwrap();
     }
- 
+
     println!("ready for computation");
 
     for i in 0..4000000 {
