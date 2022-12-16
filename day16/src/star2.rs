@@ -2,7 +2,7 @@ use std::{collections::{HashMap, HashSet}, cmp::{min, max}, io::stdin};
 
 use priority_queue::DoublePriorityQueue;
 
-#[derive(Eq, Hash, PartialEq, Debug)]
+#[derive(Eq, Hash, PartialEq, Debug, Clone)]
 struct Node {
     name: String,
     value: i32,
@@ -10,69 +10,75 @@ struct Node {
 }
   
 fn dijkstra<'a>(node: &'a Node, node_map: &'a HashMap<String, Node>) -> HashMap<&'a Node, i32> { 
-let mut q: DoublePriorityQueue<&Node, i32> = DoublePriorityQueue::new();
-let mut best: HashMap<&Node, i32> = HashMap::new();
-let mut found: HashSet<&Node> = HashSet::new();
+    let mut q: DoublePriorityQueue<&Node, i32> = DoublePriorityQueue::new();
+    let mut best: HashMap<&Node, i32> = HashMap::new();
+    let mut found: HashSet<&Node> = HashSet::new();
 
-q.push(&node, 0);
-best.insert(node, 0);
+    q.push(&node, 0);
+    best.insert(node, 0);
 
-while let Some((node, _priority)) = q.pop_min() {
-    if found.contains(node) {
-    continue;
+    while let Some((node, _priority)) = q.pop_min() {
+        if found.contains(node) {
+        continue;
+        }
+        found.insert(node);
+
+        let curr = *best.get(node).unwrap();
+
+        for out in &node.connected {
+        let other = node_map.get(out).unwrap();
+
+        q.push(other, curr+1);
+
+        if let Some(value) = best.get(other) {
+            best.insert(other, min(*value, curr+1));
+        } else {
+            best.insert(other, curr+1);
+        }
+        }
     }
-    found.insert(node);
-
-    let curr = *best.get(node).unwrap();
-
-    for out in &node.connected {
-    let other = node_map.get(out).unwrap();
-
-    q.push(other, curr+1);
-
-    if let Some(value) = best.get(other) {
-        best.insert(other, min(*value, curr+1));
-    } else {
-        best.insert(other, curr+1);
-    }
-    }
+    best
 }
-best
-}
-  
-fn find_max_other<'a>(node: &Node, minutes: i32, nodes: &mut Vec<&Node>, distances: &HashMap<(&Node, &Node), i32>) -> i32 {
+
+fn find_max<'a>(node: &Node, m_mins: i32, e_mins: i32,  nodes: &mut Vec<&Node>, distances: &HashMap<(&Node, &Node), i32>) -> i32 {
     let mut values = vec![0];
-
-    for other in nodes.clone() {
-        if other.value == 0 {continue}
-        let distance = distances.get(&(node, other)).unwrap();
-        if minutes - distance < 1 {continue}
-        nodes.retain(|x| *x != other);
-        values.push((minutes - distance - 1) * other.value + find_max_other(other, minutes - distance - 1, nodes, distances));
-        nodes.push(other);
-    };
-
-    return values.iter().fold(0, |acc, elt| {max(acc, *elt)});
-}
-  
-
-fn find_max<'a>(node: &Node, minutes: i32, nodes: &mut Vec<&Node>, distances: &HashMap<(&Node, &Node), i32>, root: &Node) -> i32 {
-    let mut values = vec![0];
-
-    for other in nodes.clone() {
-        if other.value == 0 {continue}
-        let distance = distances.get(&(node, other)).unwrap();
-        if minutes - distance < 1 {continue}
-        nodes.retain(|x| *x != other);
-        values.push((minutes - distance - 1) * other.value + find_max(other, minutes - distance - 1, nodes, distances, root));
-        nodes.push(other);
-    };
     
-    if values.len() == 1 {
-        return find_max_other(root, 26, nodes, distances);
-    }
+    for other in nodes.clone() {
+        if nodes.len() == 62 {println!("we are now processing node {}", other.name);}
+        if other.value == 0 {continue}
+        let distance = distances.get(&(node, other)).unwrap();
+
+        nodes.retain(|x| *x != other);
+
+        if m_mins - distance >= 2 {
+            values.push((m_mins - distance - 1) * other.value + find_max(other, m_mins - distance - 1, e_mins, nodes, distances));
+        }
+
+        if e_mins - distance >= 2 {
+            values.push((e_mins - distance - 1) * other.value + find_max(other, m_mins, e_mins - distance - 1, nodes, distances));
+        }
+
+        nodes.push(other);
+    };
 
     return values.iter().fold(0, |acc, elt| {max(acc, *elt)});
+}
+
+fn powerset<'a>(s: &'a Vec<&Node>) -> Vec<Vec<&'a Node>> {
+    let mut subsets: Vec<Vec<&Node>> = vec![];
+    let empty: Vec<&Node> = vec![];
+    subsets.push(empty);
+
+    let mut updated: Vec<Vec<&Node>> = vec![]; 
+
+    for ele in s {
+        for mut sub in subsets.clone() {
+            sub.push(*ele);
+            updated.push(sub);
+        }
+        subsets.append(&mut updated);
+    }
+    subsets
 }
   
 pub fn main() {
@@ -109,8 +115,8 @@ pub fn main() {
     }
 
     let mut a = Vec::new();
-    nodes.values().into_iter().for_each(|elt| {a.push(elt)});
+
     println!("searching...");
-    println!("{}", find_max(nodes.get("AA").unwrap(), 26, &mut a, &map, nodes.get("AA").unwrap()));
+    println!("{}", find_max(nodes.get("AA").unwrap(), 26, 26, &mut a, &map));
 
 }
