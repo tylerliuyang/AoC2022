@@ -40,25 +40,19 @@ fn dijkstra<'a>(node: &'a Node, node_map: &'a HashMap<String, Node>) -> HashMap<
     best
 }
 
-fn find_max<'a>(node: &Node, m_mins: i32, e_mins: i32,  nodes: &mut Vec<&Node>, distances: &HashMap<(&Node, &Node), i32>) -> i32 {
+fn find_max<'a>(node: &Node, m_mins: i32,  nodes: &mut Vec<&Node>, distances: &HashMap<(&Node, &Node), i32>) -> i32 {
     let mut values = vec![0];
     
     for other in nodes.clone() {
-        if nodes.len() == 62 {println!("we are now processing node {}", other.name);}
+        // if nodes.len() == 62 {println!("we are now processing node {}", other.name);}
         if other.value == 0 {continue}
         let distance = distances.get(&(node, other)).unwrap();
+        if m_mins - distance < 2 {continue}
 
         nodes.retain(|x| *x != other);
-
-        if m_mins - distance >= 2 {
-            values.push((m_mins - distance - 1) * other.value + find_max(other, m_mins - distance - 1, e_mins, nodes, distances));
-        }
-
-        if e_mins - distance >= 2 {
-            values.push((e_mins - distance - 1) * other.value + find_max(other, m_mins, e_mins - distance - 1, nodes, distances));
-        }
-
+        values.push((m_mins - distance - 1) * other.value + find_max(other, m_mins - distance - 1, nodes, distances));
         nodes.push(other);
+
     };
 
     return values.iter().fold(0, |acc, elt| {max(acc, *elt)});
@@ -115,8 +109,22 @@ pub fn main() {
     }
 
     let mut a = Vec::new();
+    nodes.values().into_iter().for_each(|elt| {if elt.value != 0 {a.push(elt)}});
+    let powersets = powerset(&a);
+    let len = powersets.len();
 
-    println!("searching...");
-    println!("{}", find_max(nodes.get("AA").unwrap(), 26, 26, &mut a, &map));
+    let mut max_value = 0;
+
+    for (i, mut set) in powersets.into_iter().enumerate() {
+        let mut other_set = vec![];
+        for elt in &a {
+            if set.contains(&elt) {continue}
+            other_set.push(*elt);
+        }
+        max_value = max(max_value, 
+            find_max(nodes.get("AA").unwrap(), 26, &mut set, &map)
+            + find_max(nodes.get("AA").unwrap(), 26, &mut other_set, &map));
+        println!("{}/{} {}", i, len, max_value);
+    }
 
 }
