@@ -14,52 +14,77 @@ pub fn main() {
         stdin().read_line(&mut input).unwrap();
     }
 
-    let mut indicies: Vec<usize> = Vec::new();
+    let mut indicies: Vec<i32> = Vec::new();
 
-    for i in 0..values.len() {
+    for i in 0..values.len().try_into().unwrap() {
         indicies.push(i);
     }
-    let new_values = values
-        .iter()
-        .map(|elt| {
-            elt.rem_euclid(values.len().try_into().unwrap())
-                .try_into()
-                .unwrap()
-        })
-        .collect::<Vec<usize>>();
 
-    for i in 0..values.len() {
-        let to_move = new_values.get(i).unwrap();
-        let place = indicies.iter().position(|elt| *elt == i).unwrap();
-        indicies.remove(place);
+    for i in 0..values.len().try_into().unwrap() {
+        let mut position = indicies.iter().position(|elt| *elt == i).unwrap();
+        let to_bubble = *values.get::<usize>(i.try_into().unwrap()).unwrap();
 
-        let mut new_index: usize = place + to_move;
+        for _ in 0..to_bubble.abs() {
+            if to_bubble >= 0 {
+                if position == values.len() - 1 {
+                    indicies.remove(values.len() - 1);
+                    position = 0;
+                    indicies.insert(position, i);
+                }
+                indicies.swap(position, position + 1);
+                position += 1;
 
-        if new_index >= values.len() && *values.get(i).unwrap() >= 0 {
-            new_index = (new_index + 1).rem_euclid(values.len());
-        } else if *values.get(i).unwrap() < 0 {
-            if new_index == 0 {
-                new_index = new_index + values.len() - 1
-            } else if new_index > place {
-                new_index -= 1
+                if position == values.len() - 1 {
+                    indicies.remove(values.len() - 1);
+                    position = 0;
+                    indicies.insert(position, i);
+                }
+            } else if to_bubble < 0 {
+                if position == 0 {
+                    indicies.remove(0);
+                    position = values.len() - 1;
+                    indicies.insert(values.len() - 1, i);
+                }
+                indicies.swap(position, position - 1);
+                position -= 1;
+                if position == 0 {
+                    indicies.remove(0);
+                    position = values.len() - 1;
+                    indicies.insert(values.len() - 1, i);
+                }
             }
         }
-
-        indicies.insert(new_index, i);
     }
-
     let zero_i = values.iter().position(|elt| *elt == 0).unwrap();
-    let position = indicies.iter().position(|elt| *elt == zero_i).unwrap();
+    let position = indicies
+        .iter()
+        .position(|elt| *elt == zero_i.try_into().unwrap())
+        .unwrap();
     println!(
-        "{}",
+        "{} {} {}",
         values
-            .get(*indicies.get((1000 + position) % values.len()).unwrap())
+            .get(
+                <i32 as TryInto<usize>>::try_into(
+                    *indicies.get((1000 + position) % values.len()).unwrap()
+                )
+                .unwrap()
+            )
+            .unwrap(),
+        values
+            .get(
+                <i32 as TryInto<usize>>::try_into(
+                    *indicies.get((2000 + position) % values.len()).unwrap()
+                )
+                .unwrap()
+            )
+            .unwrap(),
+        values
+            .get(
+                <i32 as TryInto<usize>>::try_into(
+                    *indicies.get((3000 + position) % values.len()).unwrap()
+                )
+                .unwrap()
+            )
             .unwrap()
-            + values
-                .get(*indicies.get((2000 + position) % values.len()).unwrap())
-                .unwrap()
-            + values
-                .get(*indicies.get((3000 + position) % values.len()).unwrap())
-                .unwrap()
     );
 }
