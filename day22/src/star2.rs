@@ -31,33 +31,33 @@ const CUBESIZE: i64 = 50;
 fn get_cube_pos(place: (i64, i64), direction: Direction) -> ((i64, i64), Direction) {
     let (i, j) = (place.0 / 50, place.1 / 50);
     match (i, j, direction) {
-        (0, 1, Direction::RIGHT) => ((place.0, 100), Direction::RIGHT),
-        (0, 1, Direction::DOWN) => ((50, place.1), Direction::DOWN),
-        (0, 1, Direction::UP) => ((place.1 + 100, 0), Direction::RIGHT),
-        (0, 1, Direction::LEFT) => ((149 - place.0, 0), Direction::RIGHT),
+        (0, 1, Direction::RIGHT) => ((place.0, 100), Direction::RIGHT), // 0, 2
+        (0, 1, Direction::DOWN) => ((50, place.1), Direction::DOWN), // 1, 1
+        (0, 1, Direction::UP) => ((place.1 + 100, 0), Direction::RIGHT), // 3, 0
+        (0, 1, Direction::LEFT) => ((149 - place.0, 0), Direction::RIGHT), // 2, 0
 
-        (0, 2, Direction::RIGHT) => ((149 - place.0, 99), Direction::LEFT),
-        (0, 2, Direction::DOWN) => ((place.1 - 50, 99), Direction::LEFT),
-        (0, 2, Direction::UP) => ((199, place.1 - 100), Direction::UP),
-        (0, 2, Direction::LEFT) => ((place.0, 99), Direction::LEFT),
+        (0, 2, Direction::RIGHT) => ((149 - place.0, 99), Direction::LEFT), // 2, 1
+        (0, 2, Direction::DOWN) => ((place.1 - 50, 99), Direction::LEFT), // 1, 1
+        (0, 2, Direction::UP) => ((199, place.1 - 100), Direction::UP), // 3, 0
+        (0, 2, Direction::LEFT) => ((place.0, 99), Direction::LEFT), // 0, 1
 
-        (1, 1, Direction::RIGHT) => ((49, 50 + place.0), Direction::UP),
-        (1, 1, Direction::DOWN) => ((100, place.1), Direction::DOWN),
-        (1, 1, Direction::UP) => ((49, place.1), Direction::UP),
-        (1, 1, Direction::LEFT) => ((100, place.0 - 50), Direction::DOWN),
+        (1, 1, Direction::RIGHT) => ((49, 50 + place.0), Direction::UP), // 0, 2
+        (1, 1, Direction::DOWN) => ((100, place.1), Direction::DOWN), // 2, 1
+        (1, 1, Direction::UP) => ((49, place.1), Direction::UP), // 0, 1
+        (1, 1, Direction::LEFT) => ((100, place.0 - 50), Direction::DOWN), // 2, 0
 
-        (2, 0, Direction::RIGHT) => ((place.0, 50), Direction::RIGHT),
-        (2, 0, Direction::DOWN) => ((150, place.1), Direction::DOWN),
-        (2, 0, Direction::UP) => ((50 + place.1, 50), Direction::RIGHT),
-        (2, 0, Direction::LEFT) => ((149 - place.0, 50), Direction::RIGHT),
+        (2, 0, Direction::RIGHT) => ((place.0, 50), Direction::RIGHT), // 2, 1
+        (2, 0, Direction::DOWN) => ((150, place.1), Direction::DOWN), // 3, 0
+        (2, 0, Direction::UP) => ((50 + place.1, 50), Direction::RIGHT), // 1, 1
+        (2, 0, Direction::LEFT) => ((149 - place.0, 50), Direction::RIGHT), // 0, 1
 
         (2, 1, Direction::RIGHT) => ((149 - place.0, 149), Direction::LEFT),
         (2, 1, Direction::DOWN) => ((50 + place.1, 49), Direction::LEFT),
         (2, 1, Direction::UP) => ((99, place.1), Direction::UP),
         (2, 1, Direction::LEFT) => ((place.0, 49), Direction::LEFT),
 
-        (3, 0, Direction::RIGHT) => ((149, place.0 - 100), Direction::UP),
-        (3, 0, Direction::DOWN) => ((0, place.1 + 100), Direction::DOWN),
+        (3, 0, Direction::RIGHT) => ((149, place.0 - 100), Direction::UP), // 2, 1
+        (3, 0, Direction::DOWN) => ((0, place.1 + 100), Direction::DOWN), // 
         (3, 0, Direction::UP) => ((149, place.1), Direction::UP),
         (3, 0, Direction::LEFT) => ((0, place.0 - 100), Direction::DOWN),
 
@@ -78,6 +78,7 @@ fn get_next(
             if (place.1 + 50) / CUBESIZE != (place_to_check.1 + 50) / CUBESIZE {
                 (*place_to_check, direction) = get_cube_pos(place, Direction::RIGHT);
             }
+
 
             if *board.get(place_to_check).unwrap() == '#' {
                 return None;
