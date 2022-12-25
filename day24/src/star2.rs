@@ -123,6 +123,9 @@ impl Position {
     fn get_pos(&self) -> (i64, i64) {
         (self.x, self.y)
     }
+    fn distance(&self, other: &Position) -> i64 {
+        (self.x - other.x).abs() + (self.y - other.y).abs()
+    }
 }
 
 pub fn main() {
@@ -205,6 +208,8 @@ fn descent(
 ) -> usize {
     let mut visited_states = HashSet::new();
 
+    let origin = queue.front().unwrap().0;
+
     let mut last_minute = usize::MAX;
     while let Some(pos_minute) = queue.pop_front() {
         // print_board(board, columns, rows, pos_minute.0);
@@ -250,6 +255,9 @@ fn descent(
             if let Some(p) = pos_minute.0.forward_checked(direction, columns, rows) {
                 if p == desired {
                     return pos_minute.1;
+                }
+                if p.distance(&origin) < (pos_minute.1 / 3) as i64 {
+                    continue;
                 }
                 if visited_states.insert((p, pos_minute.1 + 1)) {
                     queue.push_back((p, pos_minute.1 + 1));
